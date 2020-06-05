@@ -1,0 +1,9 @@
+- version:    
+    len: 4
+- dataLen:    
+    len: 8
+- data:    
+    len: -1
+- check:    
+    len: 0
+    
