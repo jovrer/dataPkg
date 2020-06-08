@@ -1,6 +1,9 @@
 package core
 
-import "bytes"
+import (
+	"bytes"
+	"encoding/binary"
+)
 
 type utils struct {
 }
@@ -14,35 +17,65 @@ func NewUtils() *utils {
 	return objUtils
 }
 
-func (*utils) String2Bytes(data string, bytesLen int) []byte {
-	datas := make([]byte, bytesLen)
-	datas = []byte(data)
+func (*utils) String2Bytes(data string, alignLen int) []byte {
+	dataBytes := []byte(data)
+	if alignLen >= len(dataBytes) {
+		datas := make([]byte, alignLen)
+		orignLen := len(dataBytes)
+		offPos := alignLen - orignLen
 
-	return datas
+		for i := offPos; i < alignLen; i++ {
+			datas[i] = dataBytes[i-offPos]
+		}
+
+		return datas
+	} else {
+		return nil
+	}
 }
 
 func (*utils) StringFromBytes(datas []byte) string {
 	return string(datas)
 }
 
-func (*utils) Int2Bytes(data string, bytesLen int) []byte {
-	datas := make([]byte, bytesLen)
-	datas = []byte(data)
+func (*utils) Int2Bytes(data int, alignLen int) []byte {
+	x := int32(data)
+	bytesBuffer := bytes.NewBuffer([]byte{})
+	binary.Write(bytesBuffer, binary.BigEndian, x)
+	dataBytes := bytesBuffer.Bytes()
 
-	return datas
+	if alignLen >= len(dataBytes) {
+		datas := make([]byte, alignLen)
+
+		orignLen := len(dataBytes)
+		offPos := alignLen - orignLen
+
+		for i := offPos; i < alignLen; i++ {
+			datas[i] = dataBytes[i-offPos]
+		}
+
+		return datas
+	} else {
+		return nil
+	}
 }
 
 func (*utils) IntFromBytes(datas []byte) int {
-	return 0
+	bytesBuffer := bytes.NewBuffer(datas)
+
+	var x int32
+	binary.Read(bytesBuffer, binary.BigEndian, &x)
+
+	return int(x)
 }
 
-func (*utils) BytesAlign(data []byte, bytesLen int) []byte {
-	if bytesLen >= len(data) {
-		datas := make([]byte, bytesLen)
+func (*utils) BytesAlign(data []byte, alignLen int) []byte {
+	if alignLen >= len(data) {
+		datas := make([]byte, alignLen)
 		orignLen := len(data)
-		offPos := bytesLen - orignLen
+		offPos := alignLen - orignLen
 
-		for i := offPos; i < bytesLen; i++ {
+		for i := offPos; i < alignLen; i++ {
 			datas[i] = data[i-offPos]
 		}
 
@@ -53,4 +86,12 @@ func (*utils) BytesAlign(data []byte, bytesLen int) []byte {
 
 func (*utils) BytesCombine(data ...[]byte) []byte {
 	return bytes.Join(data, []byte(""))
+}
+
+func (*utils) ExistKey(k string, v map[string]VALUE_TYPE) bool {
+	_, ok := v[k]
+	if ok {
+		return true
+	}
+	return false
 }
